@@ -1,0 +1,69 @@
+body {
+    background: black;
+    font-family: monospace;
+    color: white;
+
+    position: relative;
+
+    margin: 0; padding: 0;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    overflow: hidden;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#content>div:not(:first-child) {
+    display: none;
+}
+
+canvas {
+    outline: 2px solid white;
+    outline-offset: 8px;
+}
+
+* {
+    background-color: transparent;
+    color: transparent;
+    border: 0;
+    outline: none;
+    margin: 0;
+    padding: 0;
+}
+
+div#title-screen {
+    display: flex;
+    flex-direction: row;
+}
+
+h1#title-container {
+    position: relative;
+
+    width: 550px;
+    height: 170px;
+    background-image: url("res/title.png");
+    background-size: cover;
+}
+
+button#play-button {
+    width: 180px;
+    height: 60px;
+    background-image: url("res/play-button.png");
+    background-size: cover;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+}
+
+button#play-button:hover {
+    filter: brightness(0.5) sepia(1) hue-rotate(8deg) saturate(200);
+}
+
+img#title-right {
+    margin: 5px 5px 5px 20px;
+    width: 160px;
+    height: 160px;
+    image-rendering: pixelated;
+}
