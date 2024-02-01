@@ -160,6 +160,8 @@ function startGame() {
             const xDiff = xDown - xUp;
             const yDiff = yDown - yUp;
 
+            const movement = Math.hypot(xDiff, yDiff);
+            if(movement < 5) return;
             if (Math.abs(xDiff) > Math.abs(yDiff)) {/*most significant*/
                 if (xDiff > 0) {
                     window.onkeydown({key: 'a'});

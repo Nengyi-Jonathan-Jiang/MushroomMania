@@ -27,6 +27,18 @@ div#game-screen {
     justify-content: center;
 }
 
+
+@media screen and (max-width: 800px) {
+    #title-screen {
+        transform: scale(.5);
+    }
+}
+@media screen and (max-width: 500px) {
+    #title-screen {
+        transform: scale(.3);
+    }
+}
+
 canvas {
     --d: min(calc((100vw - 40px) / 6), calc((100vh - 40px) / 8));
     width: calc(var(--d) * 6);
