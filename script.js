@@ -95,9 +95,15 @@ function startGame() {
     let sDown = false;
     window.onkeydown = ({key}) => {
         switch(key.toLowerCase()) {
-            case 'w': currRot++; break;
-            case 'a': currPos--; break;
-            case 'd': currPos++; break;
+            case 'w': 
+                if((currRot & 1) || currPos < GAME_WIDTH - 1) currRot++; 
+                break;
+            case 'a': 
+                if(currPos > 0) currPos--;
+                break;
+            case 'd': 
+                if(currPos < GAME_WIDTH - 1 - (currRot & 1)) currPos++; 
+                break;
             case 's': {
                 if(didUsePhysics || didMatch || sDown) return;
                 sDown = true;
@@ -107,8 +113,8 @@ function startGame() {
                 let dx2 = [0, 0, 0, 1][currRot & 3];
                 let dy2 = [1, 0, 0, 0][currRot & 3];
 
-                let x1 = (currPos + dx1) % GAME_WIDTH;
-                let x2 = (currPos + dx2) % GAME_WIDTH;
+                let x1 = (currPos + dx1);
+                let x2 = (currPos + dx2);
                 let y1 = GAME_HEIGHT - dy1 - 2;
                 let y2 = GAME_HEIGHT - dy2 - 2;
 
@@ -183,7 +189,7 @@ function applyMatches() {
 
             if(group.length > 2) {
                 score +=
-                    [0, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000][shroom] * (group.length - 2)
+                    [0, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000][shroom] * (group.length - 2)
                 group.forEach(([xx, yy]) => game_board[xx][yy] = 0);
                 changes.push([x, y, shroom]);
                 _didMatch = true;
@@ -200,6 +206,19 @@ function applyMatches() {
 function drawGame() {
     auxCtx.clearRect(0, 0, 9, 12)
     ctx.clearRect(0, 0, 576, 768);
+
+    {
+        const o = (currRot & 1) + 1
+        auxCtx.strokeStyle = '#3b007b';
+        auxCtx.lineWidth = o;
+        auxCtx.beginPath();
+        auxCtx.moveTo(currPos + o / 2, 0);
+        auxCtx.lineTo(currPos + o / 2, 11);
+        auxCtx.closePath();
+        auxCtx.stroke();
+    }
+    
+
     if(mushroom_images.isLoaded) {
         for(let x = 0; x < GAME_WIDTH; x++) {
             for(let y = 0; y < GAME_HEIGHT; y++) {
@@ -213,10 +232,12 @@ function drawGame() {
             }
         }
 
-        auxCtx.strokeStyle = '#f00';
+        auxCtx.strokeStyle = '#80f';
         auxCtx.lineWidth = 1/16;
+        auxCtx.beginPath();
         auxCtx.moveTo(0, 2.5);
         auxCtx.lineTo(6, 2.5);
+        auxCtx.closePath();
         auxCtx.stroke();
 
         // Draw current thing
@@ -226,8 +247,8 @@ function drawGame() {
             let dx2 = [0, 0, 0, 1][currRot & 3];
             let dy2 = [1, 1, 0, 1][currRot & 3];
 
-            let x1 = (currPos + dx1) % GAME_WIDTH;
-            let x2 = (currPos + dx2) % GAME_WIDTH;
+            let x1 = (currPos + dx1);
+            let x2 = (currPos + dx2);
             let y1 = dy1;
             let y2 = dy2;
 
@@ -243,13 +264,13 @@ function drawGame() {
     font_renderer.drawString("T", auxCtx, 0.5, 7.5, 8.8);
     font_renderer.drawString(":", auxCtx, 0.5, 7.5, 9.4);
 
-    font_renderer.drawString("A=\1", auxCtx, 0.5, 7, 0);
-    font_renderer.drawString("D=\2", auxCtx, 0.5, 7, 1);
-    font_renderer.drawString("W=\3", auxCtx, 0.5, 7, 2);
-    font_renderer.drawString("S=\4", auxCtx, 0.5, 7, 3);
+    font_renderer.drawString("A=\x01", auxCtx, 0.5, 7, 0);
+    font_renderer.drawString("D=\x02", auxCtx, 0.5, 7, 1);
+    font_renderer.drawString("W=\x03", auxCtx, 0.5, 7, 2);
+    font_renderer.drawString("S=\x04", auxCtx, 0.5, 7, 3);
 
-    auxCtx.drawImage(mushroom_images.getImage(curr[0] - 1), 7.185, 10, 1, 1);
-    auxCtx.drawImage(mushroom_images.getImage(curr[1] - 1), 7.185, 11, 1, 1);
+    auxCtx.drawImage(mushroom_images.getImage(next[0] - 1), 7.185, 10, 1, 1);
+    auxCtx.drawImage(mushroom_images.getImage(next[1] - 1), 7.185, 11, 1, 1);
 
     auxCtx.drawImage(document.getElementById('title-right'), 6.935, 4.5, 1.5, 1.5)
 
