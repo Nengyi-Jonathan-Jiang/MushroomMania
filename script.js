@@ -21,7 +21,8 @@ const mushroom_images = new class MushroomImages {
 const font_renderer = new class FontRenderer {
     #images = Object.create(null);
 
-    constructor() {}
+    constructor() {
+    }
 
     /**
      * @param {string} string
@@ -30,14 +31,14 @@ const font_renderer = new class FontRenderer {
      * @param {number} x
      * @param {number} y
      */
-    drawString(string='', ctx, size, x, y) {
+    drawString(string = '', ctx, size, x, y) {
         let char_width = size;
         let char_size = size * 11 / 8;
 
-        for(let i = 0; i < string.length; i++) {
+        for (let i = 0; i < string.length; i++) {
             const charCode = string.charCodeAt(i);
-            if(this.#images[charCode] === null) continue;
-            if(!(charCode in this.#images)) {
+            if (this.#images[charCode] === null) continue;
+            if (!(charCode in this.#images)) {
                 this.#images[charCode] = null;
                 this.loadChar(charCode);
                 continue;
@@ -61,7 +62,7 @@ const font_renderer = new class FontRenderer {
 
 
 function onPlayGame() {
-    if(onPlayGame.didCall) return;
+    if (onPlayGame.didCall) return;
     onPlayGame.didCall = true;
 
     document.getElementById('content').appendChild(document.getElementById('title-screen'));
@@ -94,18 +95,18 @@ let score = 0;
 function startGame() {
     let sDown = false;
     window.onkeydown = ({key}) => {
-        switch(key.toLowerCase()) {
-            case 'w': 
-                if((currRot & 1) || currPos < GAME_WIDTH - 1) currRot++; 
+        switch (key.toLowerCase()) {
+            case 'w':
+                if ((currRot & 1) || currPos < GAME_WIDTH - 1) currRot++;
                 break;
-            case 'a': 
-                if(currPos > 0) currPos--;
+            case 'a':
+                if (currPos > 0) currPos--;
                 break;
-            case 'd': 
-                if(currPos < GAME_WIDTH - 1 - (currRot & 1)) currPos++; 
+            case 'd':
+                if (currPos < GAME_WIDTH - 1 - (currRot & 1)) currPos++;
                 break;
             case 's': {
-                if(didUsePhysics || didMatch || sDown) return;
+                if (didUsePhysics || didMatch || sDown) return;
                 sDown = true;
                 // drop the thing
                 let dx1 = [0, 1, 0, 0][currRot & 3];
@@ -118,7 +119,7 @@ function startGame() {
                 let y1 = GAME_HEIGHT - dy1 - 2;
                 let y2 = GAME_HEIGHT - dy2 - 2;
 
-                if(game_board[x1][y1] !== 0 || game_board[x2][y2] !== 0) {
+                if (game_board[x1][y1] !== 0 || game_board[x2][y2] !== 0) {
                     console.log(game_board[x1][y1] + ' ' + game_board[x2][y2]);
                     console.log(game_board)
                     alert('You lost!')
@@ -133,8 +134,54 @@ function startGame() {
             }
         }
     }
+
+    {
+        window.addEventListener('touchstart', handleTouchStart, false);
+        window.addEventListener('touchmove', handleTouchMove, false);
+
+        let xDown = null;
+        let yDown = null;
+
+        function getTouches(evt) {
+            return evt.touches
+        }
+
+        function handleTouchStart(evt) {
+            const firstTouch = getTouches(evt)[0];
+            xDown = firstTouch.clientX;
+            yDown = firstTouch.clientY;
+        }
+
+        function handleTouchMove(evt) {
+            if (!xDown || !yDown) return;
+            const xUp = evt.touches[0].clientX;
+            const yUp = evt.touches[0].clientY;
+
+            const xDiff = xDown - xUp;
+            const yDiff = yDown - yUp;
+
+            if (Math.abs(xDiff) > Math.abs(yDiff)) {/*most significant*/
+                if (xDiff > 0) {
+                    window.onkeydown({key: 'a'});
+                } else {
+                    window.onkeydown({key: 'd'});
+                }
+            } else {
+                if (yDiff > 0) {
+                    window.onkeydown({key: 'w'});
+                } else {
+                    window.onkeydown({key: 's'});
+                    window.onkeyup({key: 's'});
+                }
+            }
+            /* reset values */
+            xDown = null;
+            yDown = null;
+        }
+    }
+
     window.onkeyup = ({key}) => {
-        if(key.toLowerCase() === 's') sDown = false;
+        if (key.toLowerCase() === 's') sDown = false;
     }
 
     requestAnimationFrame(function onGameTick() {
@@ -146,16 +193,16 @@ function startGame() {
 
 function applyPhysics() {
     let _didUsePhysics = false;
-    for(let x = 0; x < GAME_WIDTH; x++) {
-        for(let y = 0; y < GAME_HEIGHT + 1; y++) {
-            if(game_board[x][y] === 0 && game_board[x][y + 1] !== 0) {
+    for (let x = 0; x < GAME_WIDTH; x++) {
+        for (let y = 0; y < GAME_HEIGHT + 1; y++) {
+            if (game_board[x][y] === 0 && game_board[x][y + 1] !== 0) {
                 _didUsePhysics = true;
                 game_board[x][y] = game_board[x][y + 1];
                 game_board[x][y + 1] = 0;
             }
         }
     }
-    if(!(didUsePhysics = _didUsePhysics)) {
+    if (!(didUsePhysics = _didUsePhysics)) {
         applyMatches();
     }
 }
@@ -163,20 +210,20 @@ function applyPhysics() {
 function applyMatches() {
     let _didMatch = false;
     let changes = [];
-    for(let y = 0; y < GAME_HEIGHT; y++) {
-        for(let x = 0; x < GAME_WIDTH; x++) {
+    for (let y = 0; y < GAME_HEIGHT; y++) {
+        for (let x = 0; x < GAME_WIDTH; x++) {
             const shroom = game_board[x][y];
-            if(shroom === 0) continue;
+            if (shroom === 0) continue;
 
             // DFS
             let group = [[x, y]]
             let edge = [[x, y]];
-            while(edge.length) {
+            while (edge.length) {
                 let [xx, yy] = edge.shift();
 
-                function add(xxx, yyy){
-                    if(game_board[xxx]?.[yyy] !== shroom) return;
-                    if(group.find(i => i.toString() === [xxx, yyy].toString()) !== undefined) return
+                function add(xxx, yyy) {
+                    if (game_board[xxx]?.[yyy] !== shroom) return;
+                    if (group.find(i => i.toString() === [xxx, yyy].toString()) !== undefined) return
                     edge.push([xxx, yyy]);
                     group.push([xxx, yyy]);
                 }
@@ -187,9 +234,8 @@ function applyMatches() {
                 add(xx, yy + 1);
             }
 
-            if(group.length > 2) {
-                score +=
-                    [0, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000][shroom] * (group.length - 2)
+            if (group.length > 2) {
+                score += [0, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000][shroom] * (group.length - 2)
                 group.forEach(([xx, yy]) => game_board[xx][yy] = 0);
                 changes.push([x, y, shroom]);
                 _didMatch = true;
@@ -217,23 +263,23 @@ function drawGame() {
         auxCtx.closePath();
         auxCtx.stroke();
     }
-    
 
-    if(mushroom_images.isLoaded) {
-        for(let x = 0; x < GAME_WIDTH; x++) {
-            for(let y = 0; y < GAME_HEIGHT; y++) {
+
+    if (mushroom_images.isLoaded) {
+        for (let x = 0; x < GAME_WIDTH; x++) {
+            for (let y = 0; y < GAME_HEIGHT; y++) {
                 let displayX = x * (1 + 0 / 16);
                 let displayY = 10 - y * (1 + 0 / 16);
 
                 let value = game_board[x][y];
-                if(value > 0) {
+                if (value > 0) {
                     auxCtx.drawImage(mushroom_images.getImage(value - 1), displayX, displayY, 1, 1);
                 }
             }
         }
 
         auxCtx.strokeStyle = '#80f';
-        auxCtx.lineWidth = 1/16;
+        auxCtx.lineWidth = 1 / 16;
         auxCtx.beginPath();
         auxCtx.moveTo(0, 2.5);
         auxCtx.lineTo(6, 2.5);

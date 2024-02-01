@@ -19,9 +19,18 @@ body {
     display: none;
 }
 
+div#game-screen {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 canvas {
-    outline: 2px solid white;
-    outline-offset: 8px;
+    --d: min(calc((100vw - 40px) / 6), calc((100vh - 40px) / 8));
+    width: calc(var(--d) * 6);
+    height: calc(var(--d) * 8);
 }
 
 * {
