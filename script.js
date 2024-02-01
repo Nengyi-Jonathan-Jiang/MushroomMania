@@ -257,7 +257,7 @@ function drawGame() {
 
     {
         const o = (currRot & 1) + 1
-        auxCtx.strokeStyle = '#3b007b';
+        auxCtx.strokeStyle = '#306';
         auxCtx.lineWidth = o;
         auxCtx.beginPath();
         auxCtx.moveTo(currPos + o / 2, 0);
