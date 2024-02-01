@@ -160,7 +160,7 @@ async function wait(time) {
     curr = [1, 1];
     currPos = 0;
     currRot = 0;
-    max = 12;
+    max = 2;
     score = 0;
 
     while (true) {
