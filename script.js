@@ -76,8 +76,8 @@ const font_renderer = new class FontRenderer {
     }
 };
 
-const GAME_WIDTH = 6;
-const GAME_HEIGHT = 9;
+const GAME_WIDTH = 7;
+const GAME_HEIGHT = 8;
 /** @type {number[][]} */
 let game_board;
 let next = [1, 2];
@@ -155,12 +155,12 @@ async function wait(time) {
     document.getElementById('content').appendChild(document.getElementById('title-screen'));
     document.getElementById('game-screen').dataset.active = '';
 
-    game_board = new Array(GAME_WIDTH).fill(null).map(() => new Array(GAME_HEIGHT + 2).fill(0));
+    game_board = new Array(GAME_WIDTH).fill(null).map(() => new Array(GAME_HEIGHT + 3).fill(0));
     next = [1, 2];
     curr = [1, 1];
     currPos = 0;
     currRot = 0;
-    max = 2;
+    max = 12;
     score = 0;
 
     while (true) {
@@ -192,8 +192,8 @@ async function wait(time) {
 
         let x1 = (currPos + dx1);
         let x2 = (currPos + dx2);
-        let y1 = GAME_HEIGHT - dy1 - 2;
-        let y2 = GAME_HEIGHT - dy2 - 2;
+        let y1 = GAME_HEIGHT - dy1 + 2;
+        let y2 = GAME_HEIGHT - dy2 + 2;
 
         if (game_board[x1][y1] !== 0 || game_board[x2][y2] !== 0) {
             alert('Game over!');
@@ -207,7 +207,6 @@ async function wait(time) {
 
         // Apply game rules
         {
-            let didUpdate = true;
             do {
                 let [didApplyPhysics, didMatch] = applyPhysics() ? [true, false] : [false, applyMatches()];
                 if(!didApplyPhysics && !didMatch) break;
@@ -217,7 +216,13 @@ async function wait(time) {
                 if(didMatch) {
                     await  wait(300);
                 }
-            } while (didUpdate);
+            } while (true);
+        }
+
+        // Check for fail condition
+        if (!game_board.map(x => x.findIndex(i => i === 0)).every(x => x >= 0 && x <= GAME_HEIGHT)) {
+            alert('Game over!');
+            break;
         }
 
         // Give next shrooms
@@ -233,7 +238,7 @@ async function wait(time) {
 function applyPhysics() {
     let didUsePhysics = false;
     for (let x = 0; x < GAME_WIDTH; x++) {
-        for (let y = 0; y < GAME_HEIGHT + 1; y++) {
+        for (let y = 0; y < game_board[x].length - 1; y++) {
             if (game_board[x][y] === 0 && game_board[x][y + 1] !== 0) {
                 didUsePhysics = true;
                 game_board[x][y] = game_board[x][y + 1];
@@ -246,7 +251,7 @@ function applyPhysics() {
 function applyMatches() {
     let didMatch = false;
     let changes = [];
-    for (let y = 0; y < GAME_HEIGHT; y++) {
+    for (let y = 0; y < game_board[0].length; y++) {
         for (let x = 0; x < GAME_WIDTH; x++) {
             const shroom = game_board[x][y];
             if (shroom === 0) continue;
@@ -290,8 +295,16 @@ function applyMatches() {
     ctx.clearRect(0, 0, 576, 768);
 
     {
+        auxCtx.strokeStyle = '#80f';
+        auxCtx.lineWidth = 1 / 16;
+        auxCtx.beginPath();
+        auxCtx.moveTo(0, 2.90625);
+        auxCtx.lineTo(7, 2.90625);
+        auxCtx.closePath();
+        auxCtx.stroke();
+
         const o = (currRot & 1) + 1
-        auxCtx.strokeStyle = '#306';
+        auxCtx.strokeStyle = '#0003';
         auxCtx.lineWidth = o;
         auxCtx.beginPath();
         auxCtx.moveTo(currPos + o / 2, 0);
@@ -303,7 +316,7 @@ function applyMatches() {
 
     if (mushroom_images.isLoaded && game_board) {
         for (let x = 0; x < GAME_WIDTH; x++) {
-            for (let y = 0; y < GAME_HEIGHT; y++) {
+            for (let y = 0; y < game_board[x].length; y++) {
                 let displayX = x;
                 let displayY = 10 - y;
 
@@ -313,14 +326,6 @@ function applyMatches() {
                 }
             }
         }
-
-        auxCtx.strokeStyle = '#80f';
-        auxCtx.lineWidth = 1 / 16;
-        auxCtx.beginPath();
-        auxCtx.moveTo(0, 2.5);
-        auxCtx.lineTo(6, 2.5);
-        auxCtx.closePath();
-        auxCtx.stroke();
 
         // Draw current thing
         if (curr != null) {
@@ -339,24 +344,24 @@ function applyMatches() {
         }
 
         // Draw next thing
-        auxCtx.drawImage(mushroom_images.getImage(next[0] - 1), 7.185, 10, 1, 1);
-        auxCtx.drawImage(mushroom_images.getImage(next[1] - 1), 7.185, 11, 1, 1);
+        auxCtx.drawImage(mushroom_images.getImage(next[0] - 1), 7.435, 10, 1, 1);
+        auxCtx.drawImage(mushroom_images.getImage(next[1] - 1), 7.435, 11, 1, 1);
     }
 
-    font_renderer.drawString(`SCORE:${score.toString().padStart(6, '0')}`, auxCtx, 0.5, 0.125, 11.22);
-    font_renderer.drawString("N", auxCtx, 0.5, 7.5, 7);
-    font_renderer.drawString("E", auxCtx, 0.5, 7.5, 7.6);
-    font_renderer.drawString("X", auxCtx, 0.5, 7.5, 8.2);
-    font_renderer.drawString("T", auxCtx, 0.5, 7.5, 8.8);
-    font_renderer.drawString(":", auxCtx, 0.5, 7.5, 9.4);
+    font_renderer.drawString(`SCORE:${score.toString().padStart(8, '0')}`, auxCtx, 0.5, 0.125, 11.22);
+    font_renderer.drawString("N", auxCtx, 0.5, 7.75, 7);
+    font_renderer.drawString("E", auxCtx, 0.5, 7.75, 7.6);
+    font_renderer.drawString("X", auxCtx, 0.5, 7.75, 8.2);
+    font_renderer.drawString("T", auxCtx, 0.5, 7.75, 8.8);
+    font_renderer.drawString(":", auxCtx, 0.5, 7.75, 9.4);
 
-    font_renderer.drawString("A=\x01", auxCtx, 0.5, 7, 0);
-    font_renderer.drawString("D=\x02", auxCtx, 0.5, 7, 1);
-    font_renderer.drawString("W=\x03", auxCtx, 0.5, 7, 2);
-    font_renderer.drawString("S=\x04", auxCtx, 0.5, 7, 3);
+    font_renderer.drawString("A=\x01", auxCtx, 0.5, 7.25, 0);
+    font_renderer.drawString("D=\x02", auxCtx, 0.5, 7.25, 1);
+    font_renderer.drawString("W=\x03", auxCtx, 0.5, 7.25, 2);
+    font_renderer.drawString("S=\x04", auxCtx, 0.5, 7.25, 3);
 
     if(mushroom_images.getMushroomMan(0) !== null)
-        auxCtx.drawImage(mushroom_images.getMushroomMan(~~((max - 1) / 3)), 6.935, 4.5, 1.5, 1.5)
+        auxCtx.drawImage(mushroom_images.getMushroomMan(~~((max - 1) / 3)), 7.185, 4.5, 1.5, 1.5)
 
     ctx.drawImage(aux, 0, 0);
 
