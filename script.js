@@ -70,14 +70,17 @@ function onPlayGame() {
 }
 
 const GAME_WIDTH = 6;
-const GAME_HEIGHT = 8;
+const GAME_HEIGHT = 9;
 
-const game_board = new Array(GAME_WIDTH).fill(null).map(() => new Array(GAME_HEIGHT).fill(0));
+const game_board = new Array(GAME_WIDTH).fill(null).map(() => new Array(GAME_HEIGHT + 2).fill(0));
 
+const aux = document.createElement('canvas');
+[aux.width, aux.height] = [576, 768];
 /** @type {CanvasRenderingContext2D} */
 const ctx = document.getElementById('game-canvas').getContext('2d');
-ctx.transform(64, 0, 0, 64, 0, 0);
-ctx.imageSmoothingEnabled = false;
+const auxCtx = aux.getContext('2d');
+auxCtx.transform(64, 0, 0, 64, 0, 0);
+auxCtx.imageSmoothingEnabled = false;
 
 let next = [1, 1];
 let curr = [1, 1];
@@ -89,25 +92,29 @@ let didMatch = false;
 let score = 0;
 
 function startGame() {
+    let sDown = false;
     window.onkeydown = ({key}) => {
         switch(key.toLowerCase()) {
             case 'w': currRot++; break;
             case 'a': currPos--; break;
             case 'd': currPos++; break;
             case 's': {
-                if(didUsePhysics || didMatch) return;
+                if(didUsePhysics || didMatch || sDown) return;
+                sDown = true;
                 // drop the thing
                 let dx1 = [0, 1, 0, 0][currRot & 3];
-                let dy1 = [0, 1, 1, 1][currRot & 3];
+                let dy1 = [0, 0, 1, 0][currRot & 3];
                 let dx2 = [0, 0, 0, 1][currRot & 3];
-                let dy2 = [1, 1, 0, 1][currRot & 3];
+                let dy2 = [1, 0, 0, 0][currRot & 3];
 
                 let x1 = (currPos + dx1) % GAME_WIDTH;
                 let x2 = (currPos + dx2) % GAME_WIDTH;
-                let y1 = GAME_HEIGHT - dy1 - 1;
-                let y2 = GAME_HEIGHT - dy2 - 1;
+                let y1 = GAME_HEIGHT - dy1 - 2;
+                let y2 = GAME_HEIGHT - dy2 - 2;
 
                 if(game_board[x1][y1] !== 0 || game_board[x2][y2] !== 0) {
+                    console.log(game_board[x1][y1] + ' ' + game_board[x2][y2]);
+                    console.log(game_board)
                     alert('You lost!')
                     window.location.href = window.location.href;
                 }
@@ -116,50 +123,83 @@ function startGame() {
                 game_board[x2][y2] = curr[1];
 
                 curr = next;
-                next = [~~(Math.random() * max) + 1, ~~(Math.random() * max) + 1]
+                next = [~~(Math.random() * Math.random() * max) + 1, ~~(Math.random() * Math.random() * max) + 1]
             }
         }
+    }
+    window.onkeyup = ({key}) => {
+        if(key.toLowerCase() === 's') sDown = false;
     }
 
     requestAnimationFrame(function onGameTick() {
         drawGame();
         requestAnimationFrame(onGameTick)
     });
-    setInterval(applyPhysics, 200);
+    setInterval(applyPhysics, 100);
 }
 
 function applyPhysics() {
-    didUsePhysics = false;
-    didMatch = false;
+    let _didUsePhysics = false;
     for(let x = 0; x < GAME_WIDTH; x++) {
-        for(let y = 0; y < GAME_HEIGHT - 1; y++) {
+        for(let y = 0; y < GAME_HEIGHT + 1; y++) {
             if(game_board[x][y] === 0 && game_board[x][y + 1] !== 0) {
-                didUsePhysics = true;
+                _didUsePhysics = true;
                 game_board[x][y] = game_board[x][y + 1];
                 game_board[x][y + 1] = 0;
             }
         }
     }
-    if(!didUsePhysics) {
-        applyMatchThree();
+    if(!(didUsePhysics = _didUsePhysics)) {
+        applyMatches();
     }
 }
 
-function applyMatchThree() {
-    for(let x = 0; x < GAME_WIDTH; x++) {
-        for(let y = 0; y < GAME_HEIGHT - 1; y++) {
+function applyMatches() {
+    let _didMatch = false;
+    let changes = [];
+    for(let y = 0; y < GAME_HEIGHT; y++) {
+        for(let x = 0; x < GAME_WIDTH; x++) {
+            const shroom = game_board[x][y];
+            if(shroom === 0) continue;
+
             // DFS
             let group = [[x, y]]
             let edge = [[x, y]];
             while(edge.length) {
-                let [x, y] = edge;
+                let [xx, yy] = edge.shift();
+
+                function add(xxx, yyy){
+                    if(game_board[xxx]?.[yyy] !== shroom) return;
+                    if(group.find(i => i.toString() === [xxx, yyy].toString()) !== undefined) return
+                    edge.push([xxx, yyy]);
+                    group.push([xxx, yyy]);
+                }
+
+                add(xx - 1, yy);
+                add(xx + 1, yy);
+                add(xx, yy - 1);
+                add(xx, yy + 1);
+            }
+
+            if(group.length > 2) {
+                score +=
+                    [0, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000][shroom] * (group.length - 2)
+                group.forEach(([xx, yy]) => game_board[xx][yy] = 0);
+                changes.push([x, y, shroom]);
+                _didMatch = true;
             }
         }
     }
+    changes.forEach(([x, y, shroom]) => {
+        game_board[x][y] = shroom + 1;
+        max = Math.max(shroom + 1, max);
+    })
+    didMatch = _didMatch;
 }
 
 function drawGame() {
-    ctx.clearRect(0, 0, 9, 12)
+    auxCtx.clearRect(0, 0, 9, 12)
+    ctx.clearRect(0, 0, 576, 768);
     if(mushroom_images.isLoaded) {
         for(let x = 0; x < GAME_WIDTH; x++) {
             for(let y = 0; y < GAME_HEIGHT; y++) {
@@ -168,10 +208,16 @@ function drawGame() {
 
                 let value = game_board[x][y];
                 if(value > 0) {
-                    ctx.drawImage(mushroom_images.getImage(value - 1), displayX, displayY, 1, 1);
+                    auxCtx.drawImage(mushroom_images.getImage(value - 1), displayX, displayY, 1, 1);
                 }
             }
         }
+
+        auxCtx.strokeStyle = '#f00';
+        auxCtx.lineWidth = 1/16;
+        auxCtx.moveTo(0, 2.5);
+        auxCtx.lineTo(6, 2.5);
+        auxCtx.stroke();
 
         // Draw current thing
         {
@@ -185,25 +231,27 @@ function drawGame() {
             let y1 = dy1;
             let y2 = dy2;
 
-            ctx.drawImage(mushroom_images.getImage(curr[0] - 1), x1, y1, 1, 1);
-            ctx.drawImage(mushroom_images.getImage(curr[1] - 1), x2, y2, 1, 1);
+            auxCtx.drawImage(mushroom_images.getImage(curr[0] - 1), x1, y1, 1, 1);
+            auxCtx.drawImage(mushroom_images.getImage(curr[1] - 1), x2, y2, 1, 1);
         }
     }
 
-    font_renderer.drawString("SCORE:119250", ctx, 0.5, 0.125, 11.22);
-    font_renderer.drawString("N", ctx, 0.5, 7.5, 7);
-    font_renderer.drawString("E", ctx, 0.5, 7.5, 7.6);
-    font_renderer.drawString("X", ctx, 0.5, 7.5, 8.2);
-    font_renderer.drawString("T", ctx, 0.5, 7.5, 8.8);
-    font_renderer.drawString(":", ctx, 0.5, 7.5, 9.4);
+    font_renderer.drawString(`SCORE:${score.toString().padStart(6, '0')}`, auxCtx, 0.5, 0.125, 11.22);
+    font_renderer.drawString("N", auxCtx, 0.5, 7.5, 7);
+    font_renderer.drawString("E", auxCtx, 0.5, 7.5, 7.6);
+    font_renderer.drawString("X", auxCtx, 0.5, 7.5, 8.2);
+    font_renderer.drawString("T", auxCtx, 0.5, 7.5, 8.8);
+    font_renderer.drawString(":", auxCtx, 0.5, 7.5, 9.4);
 
-    font_renderer.drawString("A=\1", ctx, 0.5, 7, 0);
-    font_renderer.drawString("D=\2", ctx, 0.5, 7, 1);
-    font_renderer.drawString("W=\3", ctx, 0.5, 7, 2);
-    font_renderer.drawString("S=\4", ctx, 0.5, 7, 3);
+    font_renderer.drawString("A=\1", auxCtx, 0.5, 7, 0);
+    font_renderer.drawString("D=\2", auxCtx, 0.5, 7, 1);
+    font_renderer.drawString("W=\3", auxCtx, 0.5, 7, 2);
+    font_renderer.drawString("S=\4", auxCtx, 0.5, 7, 3);
 
-    ctx.drawImage(mushroom_images.getImage(curr[0] - 1), 7.185, 10, 1, 1);
-    ctx.drawImage(mushroom_images.getImage(curr[1] - 1), 7.185, 11, 1, 1);
+    auxCtx.drawImage(mushroom_images.getImage(curr[0] - 1), 7.185, 10, 1, 1);
+    auxCtx.drawImage(mushroom_images.getImage(curr[1] - 1), 7.185, 11, 1, 1);
 
-    ctx.drawImage(document.getElementById('title-right'), 6.935, 4.5, 1.5, 1.5)
+    auxCtx.drawImage(document.getElementById('title-right'), 6.935, 4.5, 1.5, 1.5)
+
+    ctx.drawImage(aux, 0, 0);
 }
