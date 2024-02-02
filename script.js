@@ -155,6 +155,8 @@ async function wait(time) {
     document.getElementById('content').appendChild(document.getElementById('title-screen'));
     document.getElementById('game-screen').dataset.active = '';
 
+    document.getElementById('the-audio').play();
+
     game_board = new Array(GAME_WIDTH).fill(null).map(() => new Array(GAME_HEIGHT + 3).fill(0));
     next = [1, 2];
     curr = [1, 1];
