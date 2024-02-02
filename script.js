@@ -218,11 +218,8 @@ async function wait(time) {
             do {
                 let [didApplyPhysics, didBomb, didMatch] = applyPhysics() ? [true, false, false] : applyBombs() ? [false, true, false]: [false, false, applyMatches()];
                 if(!didApplyPhysics && !didBomb && !didMatch) break;
-                if(didApplyPhysics) {
+                if(didApplyPhysics || didBomb) {
                     await wait(60);
-                }
-                else if(didBomb) {
-                    await wait(120);
                 }
                 else if(didMatch) {
                     await wait(240);
@@ -239,7 +236,7 @@ async function wait(time) {
         // Give next shrooms
         curr = next;
         next = [~~(Math.random() * Math.random() * max) + 1, ~~(Math.random() * Math.random() * max) + 1]
-        if(Math.random() <= 0.02) {
+        if(Math.random() <= 0.05) {
             next = -1;
         }
     }
@@ -413,6 +410,9 @@ function drawGame() {
     ctx.drawImage(aux, 0, 0);
 }
 (function onTick() {
-    try { drawGame() } catch(e) {}
+    try { drawGame() } catch(e) {
+        alert('FATAL ERROR: Something went wrong :(')
+        console.error(e);
+    }
     requestAnimationFrame(onTick);
 })();
