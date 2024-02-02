@@ -1,10 +1,9 @@
 const mushroom_images = new class MushroomImages {
     #images = null;
     #mushroomMen = null;
-    #bomb = null;
 
     constructor() {
-        Promise.all(new Array(12).fill(null).map((_, i) => new Promise(resolve => {
+        Promise.all(new Array(13).fill(null).map((_, i) => new Promise(resolve => {
             const img = document.createElement('img');
             img.src = `res/mushrooms/mushroom-${i + 1}.png`;
             img.onload = _ => resolve(img);
@@ -15,10 +14,6 @@ const mushroom_images = new class MushroomImages {
             img.src = `res/mushroom-man/mushroom-man-${i + 1}.png`;
             img.onload = _ => resolve(img);
         }))).then(results => this.#mushroomMen = results);
-
-        const bombImg = document.createElement('img');
-        bombImg.src = `res/bomb.png`;
-        bombImg.onload = _ => this.#bomb = bombImg;
     }
 
     getImage(level) {
@@ -155,6 +150,8 @@ async function wait(time) {
     document.getElementById('content').appendChild(document.getElementById('title-screen'));
     document.getElementById('game-screen').dataset.active = '';
 
+    document.getElementById('the-audio').play();
+
     game_board = new Array(GAME_WIDTH).fill(null).map(() => new Array(GAME_HEIGHT + 3).fill(0));
 
     next = [1, 2];
@@ -186,36 +183,49 @@ async function wait(time) {
         window.onkeydown = () => {};
 
         // Apply input
-        let dx1 = [0, 1, 0, 0][currRot & 3];
-        let dy1 = [0, 0, 1, 0][currRot & 3];
-        let dx2 = [0, 0, 0, 1][currRot & 3];
-        let dy2 = [1, 0, 0, 0][currRot & 3];
+        if(curr !== -1) {
+            let dx1 = [0, 1, 0, 0][currRot & 3];
+            let dy1 = [0, 0, 1, 0][currRot & 3];
+            let dx2 = [0, 0, 0, 1][currRot & 3];
+            let dy2 = [1, 0, 0, 0][currRot & 3];
 
-        let x1 = (currPos + dx1);
-        let x2 = (currPos + dx2);
-        let y1 = GAME_HEIGHT - dy1 + 2;
-        let y2 = GAME_HEIGHT - dy2 + 2;
+            let x1 = (currPos + dx1);
+            let x2 = (currPos + dx2);
+            let y1 = GAME_HEIGHT - dy1 + 2;
+            let y2 = GAME_HEIGHT - dy2 + 2;
 
-        if (game_board[x1][y1] !== 0 || game_board[x2][y2] !== 0) {
-            alert('Game over!');
-            break;
+            if (game_board[x1][y1] !== 0 || game_board[x2][y2] !== 0) {
+                alert('Game over!');
+                break;
+            }
+
+            game_board[x1][y1] = curr[0];
+            game_board[x2][y2] = curr[1];
         }
+        else {
+            let x = currPos, y = GAME_HEIGHT + 2;
+            if (game_board[x][y] !== 0) {
+                alert('Game over!');
+                break;
+            }
 
-        game_board[x1][y1] = curr[0];
-        game_board[x2][y2] = curr[1];
+            game_board[x][y] = 13;
+        }
         curr = null;
-
 
         // Apply game rules
         {
             do {
-                let [didApplyPhysics, didMatch] = applyPhysics() ? [true, false] : [false, applyMatches()];
-                if(!didApplyPhysics && !didMatch) break;
+                let [didApplyPhysics, didBomb, didMatch] = applyPhysics() ? [true, false, false] : applyBombs() ? [false, true, false]: [false, false, applyMatches()];
+                if(!didApplyPhysics && !didBomb && !didMatch) break;
                 if(didApplyPhysics) {
                     await wait(60);
                 }
-                if(didMatch) {
-                    await  wait(250);
+                else if(didBomb) {
+                    await wait(120);
+                }
+                else if(didMatch) {
+                    await wait(240);
                 }
             } while (true);
         }
@@ -229,6 +239,9 @@ async function wait(time) {
         // Give next shrooms
         curr = next;
         next = [~~(Math.random() * Math.random() * max) + 1, ~~(Math.random() * Math.random() * max) + 1]
+        if(Math.random() <= 0.02) {
+            next = -1;
+        }
     }
 
     document.getElementById('content').appendChild(document.getElementById('game-screen'));
@@ -249,6 +262,31 @@ function applyPhysics() {
     }
     return didUsePhysics;
 }
+
+function applyBombs() {
+    let didBomb = false;
+    let changes = [];
+    for (let y = 0; y < game_board[0].length; y++) {
+        for (let x = 0; x < GAME_WIDTH; x++) {
+            const shroom = game_board[x][y];
+            if (shroom === 13) {
+                didBomb = true;
+                for(let dx = -1; dx <= 1; dx++) {
+                    for(let dy = -1; dy <= 1; dy++) {
+                        changes.push([x + dx, y + dy])
+                    }
+                }
+            }
+        }
+    }
+    changes.forEach(([x, y]) => {
+        if(game_board[x]?.[y]) {
+            game_board[x][y] = 0;
+        }
+    });
+    return didBomb;
+}
+
 function applyMatches() {
     let didMatch = false;
     let changes = [];
@@ -329,7 +367,10 @@ function drawGame() {
         }
 
         // Draw current thing
-        if (curr != null) {
+        if (curr === -1) {
+            auxCtx.drawImage(mushroom_images.getImage(12), currPos, 0, 1, 1);
+        }
+        else if (curr !== null) {
             let dx1 = [0, 1, 0, 0][currRot & 3];
             let dy1 = [0, 1, 1, 1][currRot & 3];
             let dx2 = [0, 0, 0, 1][currRot & 3];
@@ -345,8 +386,13 @@ function drawGame() {
         }
 
         // Draw next thing
-        auxCtx.drawImage(mushroom_images.getImage(next[0] - 1), GAME_WIDTH + .435, GAME_HEIGHT - 8 + 10, 1, 1);
-        auxCtx.drawImage(mushroom_images.getImage(next[1] - 1), GAME_WIDTH + .435, GAME_HEIGHT - 8 + 11, 1, 1);
+        if(next === -1) {
+            auxCtx.drawImage(mushroom_images.getImage(12), GAME_WIDTH + .435, GAME_HEIGHT - 8 + 10, 1, 1);
+        }
+        else {
+            auxCtx.drawImage(mushroom_images.getImage(next[0] - 1), GAME_WIDTH + .435, GAME_HEIGHT - 8 + 10, 1, 1);
+            auxCtx.drawImage(mushroom_images.getImage(next[1] - 1), GAME_WIDTH + .435, GAME_HEIGHT - 8 + 11, 1, 1);
+        }
     }
 
     font_renderer.drawString(`SCORE:${' '.repeat(Math.max(0, GAME_WIDTH * 2 - 14))}${score.toString().padStart(8, '0')}`, auxCtx, 0.5, 0.125, GAME_HEIGHT - 8 + 11.22);
