@@ -1,16 +1,20 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>Mushroom Mania</title>
         <link href="style.css" rel="stylesheet" type="text/css">
+        <link rel="icon" type="image/x-icon" href="favicon.ico">
     </head>
     <body>
+		<div style="display: none"><audio id="the-audio" loop src="Mushroom_Mania.mp3"></audio></div>
         <div id="content">
             <div id="title-screen" class="screen">
 				<h1 id="title-container">
-					<button id="play-button" onclick="onPlayGame()"></button>
+					<button id="play-button"></button>
 				</h1>
-				<img id="title-right" src="res/mushroom-man.png" alt="Mushroom Man">
+				<img id="title-right" src="res/mushroom-man/mushroom-man-1.png" alt="Mushroom Man">
             </div>
             <div id="game-screen">
                 <canvas id="game-canvas" width="576" height="768"></canvas>
