@@ -292,7 +292,7 @@ function applyMatches() {
     return didMatch;
 }
 
-(function drawGame() {
+function drawGame() {
     auxCtx.clearRect(0, 0, 9, 12)
     ctx.clearRect(0, 0, 576, 768);
 
@@ -366,6 +366,8 @@ function applyMatches() {
         auxCtx.drawImage(mushroom_images.getMushroomMan(~~((max - 1) / 3)), 7.185, 4.5, 1.5, 1.5)
 
     ctx.drawImage(aux, 0, 0);
-
-    requestAnimationFrame(drawGame);
-})()
+}
+(function onTick() {
+    try { drawGame() } catch(e) {}
+    requestAnimationFrame(onTick);
+})();
