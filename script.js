@@ -76,8 +76,8 @@ const font_renderer = new class FontRenderer {
     }
 };
 
-const GAME_WIDTH = 7;
-const GAME_HEIGHT = 8;
+const GAME_WIDTH = 8;
+const GAME_HEIGHT = 9;
 /** @type {number[][]} */
 let game_board;
 let next = [1, 2];
@@ -85,16 +85,16 @@ let curr = [1, 1];
 let currPos = 0;
 let currRot = 0;
 let max = 2;
-let didUsePhysics = false;
-let didMatch = false;
 let score = 0;
 
 
 const aux = document.createElement('canvas');
-[aux.width, aux.height] = [576, 768];
-/** @type {CanvasRenderingContext2D} */
-const ctx = document.getElementById('game-canvas').getContext('2d');
+const canvas = document.getElementById('game-canvas');
 const auxCtx = aux.getContext('2d');
+const ctx = canvas.getContext('2d');
+[aux.width, aux.height] = [canvas.width, canvas.height] = [(GAME_WIDTH + 2) * 64, (GAME_HEIGHT + 4) * 64];
+canvas.style.setProperty('--w', `${GAME_WIDTH + 2}`);
+canvas.style.setProperty('--h', `${GAME_HEIGHT + 4}`);
 auxCtx.transform(64, 0, 0, 64, 0, 0);
 auxCtx.imageSmoothingEnabled = false;
 
@@ -156,6 +156,7 @@ async function wait(time) {
     document.getElementById('game-screen').dataset.active = '';
 
     game_board = new Array(GAME_WIDTH).fill(null).map(() => new Array(GAME_HEIGHT + 3).fill(0));
+
     next = [1, 2];
     curr = [1, 1];
     currPos = 0;
@@ -211,10 +212,10 @@ async function wait(time) {
                 let [didApplyPhysics, didMatch] = applyPhysics() ? [true, false] : [false, applyMatches()];
                 if(!didApplyPhysics && !didMatch) break;
                 if(didApplyPhysics) {
-                    await wait(100);
+                    await wait(60);
                 }
                 if(didMatch) {
-                    await  wait(300);
+                    await  wait(250);
                 }
             } while (true);
         }
@@ -291,15 +292,15 @@ function applyMatches() {
 }
 
 function drawGame() {
-    auxCtx.clearRect(0, 0, 9, 12)
-    ctx.clearRect(0, 0, 576, 768);
+    auxCtx.clearRect(0, 0, GAME_WIDTH + 2,  GAME_HEIGHT + 4)
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     {
         auxCtx.strokeStyle = '#80f';
         auxCtx.lineWidth = 1 / 16;
         auxCtx.beginPath();
         auxCtx.moveTo(0, 2.90625);
-        auxCtx.lineTo(7, 2.90625);
+        auxCtx.lineTo(GAME_WIDTH, 2.90625);
         auxCtx.closePath();
         auxCtx.stroke();
 
@@ -308,7 +309,7 @@ function drawGame() {
         auxCtx.lineWidth = o;
         auxCtx.beginPath();
         auxCtx.moveTo(currPos + o / 2, 0);
-        auxCtx.lineTo(currPos + o / 2, 11);
+        auxCtx.lineTo(currPos + o / 2, GAME_HEIGHT + 3);
         auxCtx.closePath();
         auxCtx.stroke();
     }
@@ -318,7 +319,7 @@ function drawGame() {
         for (let x = 0; x < GAME_WIDTH; x++) {
             for (let y = 0; y < game_board[x].length; y++) {
                 let displayX = x;
-                let displayY = 10 - y;
+                let displayY = GAME_HEIGHT + 2 - y;
 
                 let value = game_board[x][y];
                 if (value > 0) {
@@ -344,24 +345,24 @@ function drawGame() {
         }
 
         // Draw next thing
-        auxCtx.drawImage(mushroom_images.getImage(next[0] - 1), 7.435, 10, 1, 1);
-        auxCtx.drawImage(mushroom_images.getImage(next[1] - 1), 7.435, 11, 1, 1);
+        auxCtx.drawImage(mushroom_images.getImage(next[0] - 1), GAME_WIDTH + .435, GAME_HEIGHT - 8 + 10, 1, 1);
+        auxCtx.drawImage(mushroom_images.getImage(next[1] - 1), GAME_WIDTH + .435, GAME_HEIGHT - 8 + 11, 1, 1);
     }
 
-    font_renderer.drawString(`SCORE:${score.toString().padStart(8, '0')}`, auxCtx, 0.5, 0.125, 11.22);
-    font_renderer.drawString("N", auxCtx, 0.5, 7.75, 7);
-    font_renderer.drawString("E", auxCtx, 0.5, 7.75, 7.6);
-    font_renderer.drawString("X", auxCtx, 0.5, 7.75, 8.2);
-    font_renderer.drawString("T", auxCtx, 0.5, 7.75, 8.8);
-    font_renderer.drawString(":", auxCtx, 0.5, 7.75, 9.4);
+    font_renderer.drawString(`SCORE:${' '.repeat(Math.max(0, GAME_WIDTH * 2 - 14))}${score.toString().padStart(8, '0')}`, auxCtx, 0.5, 0.125, GAME_HEIGHT - 8 + 11.22);
+    font_renderer.drawString("N", auxCtx, 0.5, GAME_WIDTH + .75, GAME_HEIGHT - 8 + 7);
+    font_renderer.drawString("E", auxCtx, 0.5, GAME_WIDTH + .75, GAME_HEIGHT - 8 + 7.6);
+    font_renderer.drawString("X", auxCtx, 0.5, GAME_WIDTH + .75, GAME_HEIGHT - 8 + 8.2);
+    font_renderer.drawString("T", auxCtx, 0.5, GAME_WIDTH + .75, GAME_HEIGHT - 8 + 8.8);
+    font_renderer.drawString(":", auxCtx, 0.5, GAME_WIDTH + .75, GAME_HEIGHT - 8 + 9.4);
 
-    font_renderer.drawString("A=\x01", auxCtx, 0.5, 7.25, 0);
-    font_renderer.drawString("D=\x02", auxCtx, 0.5, 7.25, 1);
-    font_renderer.drawString("W=\x03", auxCtx, 0.5, 7.25, 2);
-    font_renderer.drawString("S=\x04", auxCtx, 0.5, 7.25, 3);
+    font_renderer.drawString("A=\x01", auxCtx, 0.5, GAME_WIDTH + .25, 0);
+    font_renderer.drawString("D=\x02", auxCtx, 0.5, GAME_WIDTH + .25, 1);
+    font_renderer.drawString("W=\x03", auxCtx, 0.5, GAME_WIDTH + .25, 2);
+    font_renderer.drawString("S=\x04", auxCtx, 0.5, GAME_WIDTH + .25, 3);
 
     if(mushroom_images.getMushroomMan(0) !== null)
-        auxCtx.drawImage(mushroom_images.getMushroomMan(~~((max - 1) / 3)), 7.185, 4.5, 1.5, 1.5)
+        auxCtx.drawImage(mushroom_images.getMushroomMan(~~((max - 1) / 3)), GAME_WIDTH + .185, GAME_HEIGHT / 2 + .5, 1.5, 1.5)
 
     ctx.drawImage(aux, 0, 0);
 }

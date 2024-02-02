@@ -41,9 +41,11 @@ div#game-screen {
 }
 
 canvas {
-    --d: min(calc((100vw - 40px) / 6), calc((100vh - 40px) / 8));
-    width: calc(var(--d) * 6);
-    height: calc(var(--d) * 8);
+    --w: 1;
+    --h: 1;
+    --d: min(calc((100vw - 40px) / var(--w)), calc((100vh - 40px) / var(--h)));
+    width: calc(var(--d) * var(--w));
+    height: calc(var(--d) * var(--h));
 }
 
 * {
