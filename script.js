@@ -123,7 +123,7 @@ async function wait(time) {
         const yDiff = yDown - yUp;
 
         const movement = Math.hypot(xDiff, yDiff);
-        if (movement < 5) return;
+        if (movement < 20) return;
         if (Math.abs(xDiff) > Math.abs(yDiff)) {/*most significant*/
             if (xDiff > 0) {
                 window.onkeydown({key: 'a'});
@@ -168,6 +168,10 @@ async function wait(time) {
                 switch (key.toLowerCase()) {
                     case 'w':
                         if ((currRot & 1) || currPos < GAME_WIDTH - 1) currRot++;
+                        else {
+                            currRot++;
+                            currPos--;
+                        }
                         break;
                     case 'a':
                         if (currPos > 0) currPos--;
