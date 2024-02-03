@@ -71,8 +71,8 @@ const font_renderer = new class FontRenderer {
     }
 };
 
-const GAME_WIDTH = 8;
-const GAME_HEIGHT = 9;
+const GAME_WIDTH = 7;
+const GAME_HEIGHT = 8git;
 /** @type {number[][]} */
 let game_board;
 let next = [1, 2];
