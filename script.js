@@ -177,7 +177,7 @@ async function wait(time) {
                         if (currPos > 0) currPos--;
                         break;
                     case 'd':
-                        if (currPos < GAME_WIDTH - 1 - (currRot & 1)) currPos++;
+                        if (currPos < GAME_WIDTH - 1 - (curr == -1 ? 0 : (currRot & 1))) currPos++;
                         break;
                     case 's':
                         resolve();
@@ -343,7 +343,7 @@ function drawGame() {
         auxCtx.closePath();
         auxCtx.stroke();
 
-        const o = (currRot & 1) + 1
+        const o = curr == -1 ? 1 : (currRot & 1) + 1
         auxCtx.strokeStyle = '#0003';
         auxCtx.lineWidth = o;
         auxCtx.beginPath();
