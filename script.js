@@ -247,7 +247,7 @@ async function wait(time) {
         // Give next shrooms
         curr = next;
         next = [~~(Math.random() * Math.random() * max) + 1, ~~(Math.random() * Math.random() * max) + 1]
-        if(Math.random() <= 0.5) {
+        if(Math.random() <= 0.05) {
             next = -1;
         }
     }
