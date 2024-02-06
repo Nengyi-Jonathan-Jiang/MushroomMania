@@ -81,6 +81,7 @@ let currPos = 0;
 let currRot = 0;
 let max = 2;
 let score = 0;
+let isFalling = false;
 
 
 const aux = document.createElement('canvas');
@@ -168,6 +169,7 @@ async function wait(time) {
                 switch (key.toLowerCase()) {
                     case 'w':
                         if ((currRot & 1) || currPos < GAME_WIDTH - 1) currRot++;
+                        else if(curr == -1){}
                         else {
                             currRot++;
                             currPos--;
@@ -214,6 +216,10 @@ async function wait(time) {
             }
 
             game_board[x][y] = 13;
+            if(currPos == GAME_WIDTH - 1){
+                currPos -= 1;
+                currRot = 1;
+            }
         }
         curr = null;
 
@@ -221,6 +227,7 @@ async function wait(time) {
         {
             do {
                 let [didApplyPhysics, didBomb, didMatch] = applyPhysics() ? [true, false, false] : applyBombs() ? [false, true, false]: [false, false, applyMatches()];
+                isFalling = didApplyPhysics || didBomb || didMatch;
                 if(!didApplyPhysics && !didBomb && !didMatch) break;
                 if(didApplyPhysics || didBomb) {
                     await wait(60);
@@ -240,7 +247,7 @@ async function wait(time) {
         // Give next shrooms
         curr = next;
         next = [~~(Math.random() * Math.random() * max) + 1, ~~(Math.random() * Math.random() * max) + 1]
-        if(Math.random() <= 0.05) {
+        if(Math.random() <= 0.5) {
             next = -1;
         }
     }
@@ -282,6 +289,9 @@ function applyBombs() {
     }
     changes.forEach(([x, y]) => {
         if(game_board[x]?.[y]) {
+            if(game_board[x][y] != 13) {
+                score += [0, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000][game_board[x][y]] * .2
+            }
             game_board[x][y] = 0;
         }
     });
@@ -343,14 +353,16 @@ function drawGame() {
         auxCtx.closePath();
         auxCtx.stroke();
 
-        const o = curr == -1 ? 1 : (currRot & 1) + 1
-        auxCtx.strokeStyle = '#0003';
-        auxCtx.lineWidth = o;
-        auxCtx.beginPath();
-        auxCtx.moveTo(currPos + o / 2, 0);
-        auxCtx.lineTo(currPos + o / 2, GAME_HEIGHT + 3);
-        auxCtx.closePath();
-        auxCtx.stroke();
+        if(!isFalling){
+            const o = curr == -1 ? 1 : (currRot & 1) + 1
+            auxCtx.strokeStyle = '#0003';
+            auxCtx.lineWidth = o;
+            auxCtx.beginPath();
+            auxCtx.moveTo(currPos + o / 2, 0);
+            auxCtx.lineTo(currPos + o / 2, GAME_HEIGHT + 3);
+            auxCtx.closePath();
+            auxCtx.stroke();
+        }
     }
 
 
