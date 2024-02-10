@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!--suppress HtmlRequiredAltAttribute -->
 <html lang="en">
     <head>
         <meta charset="UTF-8">
@@ -8,6 +9,13 @@
         <link rel="icon" type="image/x-icon" href="res/favicon.ico">
     </head>
     <body>
+		<script>
+			let deviceType = 'keyboard';
+			if('ontouchstart' in document) {
+				deviceType = 'touchscreen';
+			}
+			document.body.dataset['deviceType'] = deviceType;
+		</script>
 		<div style="display: none"><audio id="the-audio" loop src="res/Mushroom_Mania.mp3"></audio></div>
         <div id="content">
             <div id="title-screen" class="screen">
@@ -16,13 +24,99 @@
 				</h1>
 				<img id="title-right" src="res/mushroom-man/mushroom-man-1.png" alt="Mushroom Man">
             </div>
+			<div id="help-screen">
+				<button id="help-back-button" onclick="document.getElementById('content').appendChild(document.getElementById('help-screen'))">Back to game</button>
+				<h1>How to play</h1>
+				<p>
+					Make exotic mushrooms! Match three or more adjacent mushrooms to make a better mushroom. Watch
+					out for truffle bombs!
+				</p>
+				<p class="touchscreen-only">
+					Swipe left and right to select the column. Swipe up to rotate, swipe down to drop the mushrooms.
+				</p>
+				<p class="keyboard-only">
+					A and D to select the column. W to rotate, S to drop the mushrooms.
+				</p>
+				<h1>Mushroom tiers</h1>
+				<table id="mushroom-tiers">
+					<tr>
+						<td><div>
+							<img src="res/mushrooms/mushroom-1.png">
+							<span>Single red</span>
+						</div></td>
+						<td><div>
+							<img src="res/mushrooms/mushroom-2.png">
+							<span>Double red</span>
+						</div></td>
+						<td><div>
+							<img src="res/mushrooms/mushroom-3.png">
+							<span>Large red</span>
+						</div></td>
+					</tr>
+					<tr>
+						<td><div>
+							<img src="res/mushrooms/mushroom-4.png">
+							<span>Single gold</span>
+						</div></td>
+						<td><div>
+							<img src="res/mushrooms/mushroom-5.png">
+							<span>Double gold</span>
+						</div></td>
+						<td><div>
+							<img src="res/mushrooms/mushroom-6.png">
+							<span>Large gold</span>
+						</div></td>
+					</tr>
+					<tr>
+						<td><div>
+							<img src="res/mushrooms/mushroom-7.png">
+							<span>Single green</span>
+						</div></td>
+						<td><div>
+							<img src="res/mushrooms/mushroom-8.png">
+							<span>Double green</span>
+						</div></td>
+						<td><div>
+							<img src="res/mushrooms/mushroom-9.png">
+							<span>Large green</span>
+						</div></td>
+					</tr>
+					<tr>
+						<td><div>
+							<img src="res/mushrooms/mushroom-10.png">
+							<span>Single blue</span>
+						</div></td>
+						<td><div>
+							<img src="res/mushrooms/mushroom-11.png">
+							<span>Double blue</span>
+						</div></td>
+						<td><div>
+							<img src="res/mushrooms/mushroom-12.png">
+							<span>Large blue</span>
+						</div></td>
+					</tr>
+					<tr>
+						<td><div>
+							<img src="res/mushrooms/mushroom-13.png">
+							<span>Single black</span>
+						</div></td>
+						<td><div>
+							<img src="res/mushrooms/mushroom-14.png">
+							<span>Double black</span>
+						</div></td>
+						<td><div>
+							<img src="res/mushrooms/mushroom-15.png">
+							<span>Large black</span>
+						</div></td>
+					</tr>
+				</table>
+			</div>
             <div id="game-screen">
-                <canvas id="game-canvas" width="576" height="960"></canvas>
+				<div>
+					<canvas id="game-canvas" width="576" height="960"></canvas>
+					<button id="help-button" onclick="document.getElementById('content').firstChild.before(document.getElementById('help-screen'));"></button>
+				</div>
             </div>
-            <!--
-                Funny mushroom theme idea
-                C C Eb - F F D - Eb D C B C B C D Eb - Eb - (8 bit music)
-            -->
         </div>
         <script src="script.js"></script>
     </body>

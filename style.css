@@ -14,6 +14,10 @@ body {
     align-items: center;
     justify-content: center;
     user-select: none;
+
+    --w: 1;
+    --h: 1;
+    --d: min(calc((100vw - 40px) / var(--w)), calc((100vh - 40px) / var(--h)));
 }
 
 #content>div:not(:first-child) {
@@ -41,9 +45,6 @@ div#game-screen {
 }
 
 canvas {
-    --w: 1;
-    --h: 1;
-    --d: min(calc((100vw - 40px) / var(--w)), calc((100vh - 40px) / var(--h)));
     width: calc(var(--d) * var(--w));
     height: calc(var(--d) * var(--h));
 }
@@ -89,5 +90,82 @@ img#title-right {
     margin: 5px 5px 5px 20px;
     width: 160px;
     height: 160px;
+    image-rendering: pixelated;
+}
+
+body[data-device-type='touchscreen'] .keyboard-only,
+body[data-device-type='keyboard'] .touchscreen-only {
+    display: none;
+}
+
+#help-screen {
+    display: block;
+    font-size: 20px;
+    width: calc(var(--d) * var(--w));
+    height: calc(var(--d) * var(--h));
+    overflow: auto;
+}
+
+#help-screen * {
+    color: white;
+    font-family: monospace;
+}
+
+#help-screen>* {
+    margin: 10px 0;
+}
+
+#help-screen #mushroom-tiers td {
+    outline: 2px solid white;
+    padding: 10px;
+    display: table-cell;
+}
+
+#help-screen #mushroom-tiers td div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+#help-screen p {
+    text-align: justify;
+}
+
+#help-screen p::before {
+    content: "";
+    display: inline-block;
+    height: 1px;
+    width: 20px;
+}
+
+#help-screen #mushroom-tiers img {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 10px;
+}
+
+#help-back-button {
+    width: 100%;
+    outline: 2px solid white;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+#game-screen>div {
+    position: relative;
+}
+
+#help-button {
+    position: absolute;
+    top: 0;
+    right: calc(var(--d) / 2);
+    width: var(--d);
+    height: var(--d);
+    background-image: url("res/font/5.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
     image-rendering: pixelated;
 }
